@@ -4,6 +4,10 @@ A merged, high-performance live coding environment for **Tidal Cycles** and **Su
 
 ---
 
+Tested and developed on **Ubuntu 24.04 LTS**.
+
+---
+
 ## Features
 
 * **Smart Evaluation:** Evaluates the current block/paragraph of code automatically based on your cursor position (matching modern IDE behaviors).
