@@ -37,7 +37,7 @@ To run this plugin, your system must meet the following software requirements:
 
 | Shortcut | Action |
 | :--- | :--- |
-| **`Ctrl + Return`** / **`Ctrl + KP_Enter`** | **Smart Eval:** Evaluates the current block of text. |
+| **`Ctrl + Return`** / **`Ctrl + KP_Enter`** | **Smart Eval:** Evaluates the current block or line of text. |
 | **`Ctrl + .`** (Period) | **Hush:** Instantly silences all active audio streams. |
 
 ---
