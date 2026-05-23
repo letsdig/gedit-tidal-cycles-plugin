@@ -111,7 +111,6 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
 
             cmd = ["bash", "-i", "-c", "ghci -XOverloadedStrings -package tidal"]
             
-            # Using start_new_session=True instead of preexec_fn=os.setsid to be safe and modern
             self.ghci_process = subprocess.Popen(
                 cmd,
                 stdin=subprocess.PIPE,
@@ -452,8 +451,6 @@ class TidalSidebarPanel(Gtk.Box):
 
     def _write_config_to_disk(self, text_path):
         try:
-            # NOTA: Rimosso il controllo e il metodo inesistente 'add_group'
-            # GLib.KeyFile crea il gruppo 'TidalConfig' in automatico se non esiste
             self.keyfile.set_string("TidalConfig", "boot_path", text_path)
             
             data = self.keyfile.to_data()[0]
