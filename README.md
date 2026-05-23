@@ -78,7 +78,8 @@ Type or paste the absolute path into the Boot File input field.
 The configuration will automatically save to ~/.config/gedit/plugins/tidal_config.ini when the input field loses focus.
 1. **Create the Gedit local plugin directory** (if it doesn't exist yet):
    ```bash
-
+   mkdir -p ~/.local/share/gedit/plugins/
+   
 ## SuperCollider Start
 Start super collider ide (scide) or launch from terminal: sclang
 
