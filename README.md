@@ -54,6 +54,8 @@ To run this plugin, your system must meet the following software requirements:
 
 Start super collider ide (scide) or launch from terminal: sclang
 
+<img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
+
 Activate the Plugin:
 
 Open Gedit.
