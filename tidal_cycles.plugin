@@ -1,0 +1,10 @@
+[Plugin]
+Loader=python3
+Module=tidal_cycles_plugin
+IAge=3
+Name=Tidal Cycles
+Description=Live coding environment for Tidal Cycles and SuperCollider
+Authors=letsdig
+Copyright=Copyright (C) 2026
+Website=https://tidalcycles.org/
+Version=1.0.0
