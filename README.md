@@ -1,3 +1,6 @@
+<img width="1311" height="750" alt="image" src="https://github.com/user-attachments/assets/4dec28d5-b307-4c4e-9d3a-b5f3078822da" />
+
+
 # Tidal Cycles Plugin for Gedit
 
 A merged, high-performance live coding environment for **Tidal Cycles** and **SuperCollider** directly inside **Gedit**. It features smart paragraph/block parsing matching VS Code behaviors, optimized console logging, auto-saving configurations, and automatic syntax loading.
