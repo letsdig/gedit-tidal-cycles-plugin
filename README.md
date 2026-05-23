@@ -49,10 +49,11 @@ To run this plugin, your system must meet the following software requirements:
 
 ## Installation
 1. **Create the Gedit local plugin directory** (if it doesn't exist yet):
+
    ```bash
    mkdir -p ~/.local/share/gedit/plugins/
 
-2. Extract or copy the files in it:
+3. Extract or copy the files in it:
 
 * `~/.local/share/gedit/plugins/`
   * `├── tidal_cycles.plugin`
