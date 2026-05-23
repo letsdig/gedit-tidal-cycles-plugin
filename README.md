@@ -39,9 +39,9 @@ To run this plugin, your system must meet the following software requirements:
 ---
 
 ## Installation
-~/.local/share/gedit/plugins/
-├── tidal_cycles.plugin
-└── tidal_cycles_plugin.py
+* `~/.local/share/gedit/plugins/`
+  * `├── tidal_cycles.plugin`
+  * `└── tidal_cycles_plugin.py`
 
 Activate the Plugin:
 
