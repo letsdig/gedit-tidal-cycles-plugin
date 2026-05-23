@@ -81,7 +81,9 @@ The configuration will automatically save to ~/.config/gedit/plugins/tidal_confi
    mkdir -p ~/.local/share/gedit/plugins/
    
 ## SuperCollider Start
-Start super collider ide (scide) or launch from terminal: sclang
+Start super collider ide (scide) or launch from terminal: 
+```bash
+sclang
 
 <img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
    mkdir -p ~/.local/share/gedit/plugins/
