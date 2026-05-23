@@ -52,19 +52,15 @@ To run this plugin, your system must meet the following software requirements:
   * `├── tidal_cycles.plugin`
   * `└── tidal_cycles_plugin.py`
 
-Start super collider ide (scide) or launch from terminal: sclang
-
-<img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
-
 Activate the Plugin:
 
 Open Gedit.
 
 Go to Edit -> Preferences -> Plugins.
 
-<img width="399" height="461" alt="image" src="https://github.com/user-attachments/assets/315e20c0-f625-41a7-8c5b-e63b1a977466" />
-
 Look for Tidal Cycles in the list and check the box to enable it.
+
+<img width="399" height="461" alt="image" src="https://github.com/user-attachments/assets/315e20c0-f625-41a7-8c5b-e63b1a977466" />
 
 Enable panels from gedit views menu.
 
@@ -80,4 +76,9 @@ Type or paste the absolute path into the Boot File input field.
 The configuration will automatically save to ~/.config/gedit/plugins/tidal_config.ini when the input field loses focus.
 1. **Create the Gedit local plugin directory** (if it doesn't exist yet):
    ```bash
+
+## SuperCollider Start
+Start super collider ide (scide) or launch from terminal: sclang
+
+<img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
    mkdir -p ~/.local/share/gedit/plugins/
