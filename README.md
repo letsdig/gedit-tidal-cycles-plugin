@@ -2,6 +2,8 @@
 
 A merged, high-performance live coding environment for **Tidal Cycles** and **SuperCollider** directly inside **Gedit**. It features smart paragraph/block parsing matching VS Code behaviors, optimized console logging, auto-saving configurations, and automatic syntax loading.
 
+Targeted to low spec old hardware where visual code is too much and emacs or neovim are too hard to master in a little time, also good in any situation where one wants a very light and modern editor. 
+
 ---
 
 Tested and developed on **Ubuntu 24.04 LTS**.
