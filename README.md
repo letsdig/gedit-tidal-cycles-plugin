@@ -52,6 +52,8 @@ To run this plugin, your system must meet the following software requirements:
   * `├── tidal_cycles.plugin`
   * `└── tidal_cycles_plugin.py`
 
+Start super collider ide (scide) or launch from terminal: sclang
+
 Activate the Plugin:
 
 Open Gedit.
@@ -59,6 +61,8 @@ Open Gedit.
 Go to Edit -> Preferences -> Plugins.
 
 Look for Tidal Cycles in the list and check the box to enable it.
+
+Enable panels from gedit views menu.
 
 ## Configuration
 Upon activation, the plugin will look into standard directories (~/.ghcup/, ~/.cabal/, etc.) to automatically discover your BootTidal.hs file.
