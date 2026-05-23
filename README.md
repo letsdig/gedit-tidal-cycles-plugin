@@ -62,7 +62,7 @@ Open Gedit.
 
 Go to Edit -> Preferences -> Plugins.
 
-<img width="399" height="461" alt="image" src="https://github.com/user-attachments/assets/ad7e9af7-64d4-4c3e-bc5c-a5938299887e" />
+<img width="399" height="461" alt="image" src="https://github.com/user-attachments/assets/315e20c0-f625-41a7-8c5b-e63b1a977466" />
 
 Look for Tidal Cycles in the list and check the box to enable it.
 
