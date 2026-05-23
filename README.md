@@ -52,7 +52,8 @@ To run this plugin, your system must meet the following software requirements:
    ```bash
    mkdir -p ~/.local/share/gedit/plugins/
 
-2. Extract or copy the files in there:
+2. Extract or copy the files in it:
+
 * `~/.local/share/gedit/plugins/`
   * `├── tidal_cycles.plugin`
   * `└── tidal_cycles_plugin.py`
