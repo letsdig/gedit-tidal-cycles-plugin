@@ -9,12 +9,14 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gedit', '3.0')
 
-from gi.repository import Gtk, Gedit, GObject, Gio, GLib, Gdk, Pango
+# GtkSource must be imported to give us access to the language manager engine
+from gi.repository import Gtk, Gedit, GObject, Gio, GLib, Gdk, Pango, GtkSource
 import subprocess
 import threading
 import os
 import signal
 import glob
+import time
 
 CONFIG_DIR = os.path.expanduser("~/.config/gedit/plugins")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "tidal_config.ini")
@@ -44,6 +46,9 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self.stack = None
         self.ghci_process = None
         self.ghci_thread_out = None
+        # Background worker state variables
+        self._syntax_worker_active = False
+        self._syntax_thread = None
 
     def do_activate(self):
         self._install_window_actions()
@@ -93,6 +98,21 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self.window.connect("active-tab-changed", self._on_tab_changed)
         self.window.connect("tab-added", self._on_tab_added)
         GLib.timeout_add(500, self._setup_view_listener)
+
+        # Spawns a dedicated tracking thread that monitors your workspace
+        self._start_syntax_tracker_thread()
+
+    def _start_syntax_tracker_thread(self):
+        """Launches a thread loop to force correct highlighting every second."""
+        self._syntax_worker_active = True
+        self._syntax_thread = threading.Thread(target=self._syntax_tracker_loop, daemon=True)
+        self._syntax_thread.start()
+
+    def _syntax_tracker_loop(self):
+        while self._syntax_worker_active:
+            # Safely request the main thread to run the syntax checking engine
+            GLib.idle_add(self._force_haskell_syntax)
+            time.sleep(1.0)
 
     def _update_status_safe(self, text):
         if self.panel and hasattr(self.panel, 'status_label'):
@@ -218,19 +238,27 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self._force_haskell_syntax()
 
     def _force_haskell_syntax(self):
-        view = self.window.get_active_view()
-        if not view: return
-        buf = view.get_buffer()
-        if not isinstance(buf, Gedit.Document): return
+        """Scans all opened text buffers and updates them cleanly without crashing."""
+        if not self.window:
+            return False
+            
+        # Standard loop through active editor layouts
+        for view in self.window.get_views():
+            buf = view.get_buffer()
+            if not isinstance(buf, Gedit.Document): 
+                continue
 
-        location = buf.get_file().get_location()
-        if location:
-            filename = location.get_basename()
-            if filename.endswith('.tidal'):
-                lang_manager = Gedit.Document.get_language_manager()
-                haskell_lang = lang_manager.get_language('haskell')
-                if haskell_lang:
-                    buf.set_language(haskell_lang)
+            location = buf.get_file().get_location()
+            if location:
+                filename = location.get_basename()
+                if filename.endswith('.tidal'):
+                    # Access the GtkSource system directly to handle highlight configuration
+                    lang_manager = GtkSource.LanguageManager.get_default()
+                    haskell_lang = lang_manager.get_language('haskell')
+                    
+                    if haskell_lang and buf.get_language() != haskell_lang:
+                        buf.set_language(haskell_lang)
+        return False
 
     def _setup_view_listener(self):
         view = self.window.get_active_view()
@@ -317,7 +345,6 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
     def _kill_ghci_backend(self):
         if self.ghci_process:
             try:
-                # Target the entire process group cleanly
                 os.killpg(os.getpgid(self.ghci_process.pid), signal.SIGTERM)
             except Exception:
                 try: 
@@ -335,7 +362,6 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         buffer.apply_tag(tag, start, end)
         
         def clear_highlight():
-            # Verify the buffer is valid and the window hasn't closed under our feet
             if GObject.Object.__gtype__.name != 'void' and buffer:
                 try:
                     s = buffer.get_iter_at_mark(start_mark)
@@ -349,6 +375,8 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         GLib.timeout_add(180, clear_highlight)
 
     def do_deactivate(self):
+        # Shut down background highlighting workers safely
+        self._syntax_worker_active = False
         self._kill_ghci_backend()
         for view, handler_id in list(self._handlers.items()):
             try: 
@@ -400,7 +428,6 @@ class TidalSidebarPanel(Gtk.Box):
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.text_view.override_font(Pango.FontDescription.from_string("Monospace 9"))
         
-        # Explicitly matching modern CSS configurations safely
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(b"""
             textview text {
@@ -452,7 +479,6 @@ class TidalSidebarPanel(Gtk.Box):
     def _write_config_to_disk(self, text_path):
         try:
             self.keyfile.set_string("TidalConfig", "boot_path", text_path)
-            
             data = self.keyfile.to_data()[0]
             with open(CONFIG_FILE, "w") as f:
                 f.write(data)
@@ -460,7 +486,6 @@ class TidalSidebarPanel(Gtk.Box):
             print(f"Error saving config: {e}")
 
     def log_message(self, message):
-        # Defend against UI logging updates executed on raw threads
         if threading.current_thread() != threading.main_thread():
             GLib.idle_add(self.log_message, message)
             return
