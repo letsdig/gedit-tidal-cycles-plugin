@@ -244,6 +244,10 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
             
         # Standard loop through active editor layouts
         for view in self.window.get_views():
+            # SAFEGUARD: Confirm the view hasn't been destroyed before accessing it
+            if not view or not isinstance(view, Gtk.Widget):
+                continue
+                
             buf = view.get_buffer()
             if not isinstance(buf, Gedit.Document): 
                 continue
@@ -262,7 +266,8 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
 
     def _setup_view_listener(self):
         view = self.window.get_active_view()
-        if view and view not in self._handlers:
+        # SAFEGUARD: Validate that the active view layout is a living GTK widget
+        if view and isinstance(view, Gtk.Widget) and view not in self._handlers:
             handler_id = view.connect("key-press-event", self._on_key_press)
             self._handlers[view] = handler_id
         self._force_haskell_syntax()
@@ -284,7 +289,8 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
 
     def _get_current_buffer(self):
         view = self.window.get_active_view()
-        return view.get_buffer() if view else None
+        # SAFEGUARD: Wrap structural logic validation checks
+        return view.get_buffer() if view and isinstance(view, Gtk.Widget) else None
 
     def _on_eval_smart(self, action, param):
         buffer = self._get_current_buffer()
@@ -380,7 +386,9 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self._kill_ghci_backend()
         for view, handler_id in list(self._handlers.items()):
             try: 
-                view.disconnect(handler_id)
+                # SAFEGUARD: Protect against stale handler lookups on closed tabs
+                if view and isinstance(view, Gtk.Widget):
+                    view.disconnect(handler_id)
             except Exception: 
                 pass
         self._handlers.clear()
@@ -411,7 +419,7 @@ class TidalSidebarPanel(Gtk.Box):
         self.keyfile = GLib.KeyFile()
         try:
             os.makedirs(CONFIG_DIR, exist_ok=True)
-            self.keyfile.load_from_file(CONFIG_FILE, GLib.KeyFileFlags.NONE)
+            self.keyfile.load_from_file(CONFIG_FILE, GLFileFlags.NONE)
         except Exception:
             pass
 
