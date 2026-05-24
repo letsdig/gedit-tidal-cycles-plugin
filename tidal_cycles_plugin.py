@@ -30,10 +30,12 @@ class TidalCyclesPlugin(GObject.Object, Gedit.AppActivatable):
     def do_activate(self):
         self.app.set_accels_for_action('win.eval-smart', ['<Control>Return', '<Control>KP_Enter'])
         self.app.set_accels_for_action('win.hush', ['<Control>period'])
+        self.app.set_accels_for_action('win.tidal-comment', ['<Control>ugrave'])
 
     def do_deactivate(self):
         self.app.set_accels_for_action('win.eval-smart', [])
         self.app.set_accels_for_action('win.hush', [])
+        self.app.set_accels_for_action('win.tidal-comment', [])
 
 class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
     window = GObject.Property(type=Gedit.Window)
@@ -101,6 +103,7 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
 
         # Spawns a dedicated tracking thread that monitors your workspace
         self._start_syntax_tracker_thread()
+        self._extend_gedit_menu()
 
     def _start_syntax_tracker_thread(self):
         """Launches a thread loop to force correct highlighting every second."""
@@ -221,13 +224,34 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         actions = [
             ('eval-smart', self._on_eval_smart),
             ('hush', self._on_hush),
-            ('connect-sc', self._on_restart_backend)
+            ('connect-sc', self._on_restart_backend),
+            ('tidal-comment', self._on_toggle_comment)
         ]
         for name, callback in actions:
             action = Gio.SimpleAction.new(name, None)
             action.connect('activate', callback)
             self.action_group.add_action(action)
         self.window.insert_action_group('win', self.action_group)
+
+    def _extend_gedit_menu(self):
+        builder = Gtk.Builder()
+        ui_xml = """
+        <interface>
+          <menu id="context-menu">
+            <section>
+              <item>
+                <attribute name="label">Tidal: Commenta/Decommenta</attribute>
+                <attribute name="action">win.tidal-comment</attribute>
+              </item>
+            </section>
+          </menu>
+        </interface>
+        """
+        try:
+            builder.add_from_string(ui_xml)
+            self.window.get_hamburger_menu() 
+        except Exception:
+            pass
 
     def _on_tab_changed(self, window, tab):
         self._setup_view_listener()
@@ -291,6 +315,54 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         view = self.window.get_active_view()
         # SAFEGUARD: Wrap structural logic validation checks
         return view.get_buffer() if view and isinstance(view, Gtk.Widget) else None
+
+    def _on_toggle_comment(self, action, param):
+        """Inietta o rimuove '--' basandosi sulla selezione o sulla riga corrente."""
+        buffer = self._get_current_buffer()
+        if buffer is None or not isinstance(buffer, Gtk.TextBuffer):
+            return
+
+        # Restituisce una tupla vuota () se non c'è selezione in PyGObject
+        bounds = buffer.get_selection_bounds()
+        if bounds:
+            start, end = bounds
+            has_selection = True
+        else:
+            insert_mark = buffer.get_insert()
+            start = buffer.get_iter_at_mark(insert_mark)
+            start.set_line_offset(0)
+            end = start.copy()
+            end.forward_to_line_end()
+            has_selection = False
+
+        text = buffer.get_text(start, end, False)
+        lines = text.splitlines()
+        if not lines:
+            return
+
+        is_commented = all(line.strip().startswith('--') or not line.strip() for line in lines)
+        
+        new_lines = []
+        for line in lines:
+            if is_commented:
+                if line.strip().startswith('-- '):
+                    new_lines.append(line.replace('-- ', '', 1))
+                elif line.strip().startswith('--'):
+                    new_lines.append(line.replace('--', '', 1))
+                else:
+                    new_lines.append(line)
+            else:
+                new_lines.append('-- ' + line)
+
+        new_text = "\n".join(new_lines)
+        
+        if not has_selection and text.endswith('\n'):
+            new_text += '\n'
+
+        buffer.begin_user_action()
+        buffer.delete(start, end)
+        buffer.insert(start, new_text)
+        buffer.end_user_action()
 
     def _on_eval_smart(self, action, param):
         buffer = self._get_current_buffer()
@@ -419,7 +491,7 @@ class TidalSidebarPanel(Gtk.Box):
         self.keyfile = GLib.KeyFile()
         try:
             os.makedirs(CONFIG_DIR, exist_ok=True)
-            self.keyfile.load_from_file(CONFIG_FILE, GLFileFlags.NONE)
+            self.keyfile.load_from_file(CONFIG_FILE, GLib.KeyFileFlags.NONE)
         except Exception:
             pass
 
