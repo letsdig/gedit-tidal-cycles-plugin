@@ -94,9 +94,6 @@ If your boot script is in a custom location:
 <img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
 
 
-## 🎨 Native Syntax Highlighting Installation
-The plugin now supports automatic, native syntax highlighting for `.tidal` files without any complex manual system configuration!
-
 
 # Crea il collegamento per il Gedit di Ubuntu 24.04
 ln -s ~/.local/share/gtksourceview-4/language-specs ~/.local/share/libgedit-gtksourceview-300/language-specs
