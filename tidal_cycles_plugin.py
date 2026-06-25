@@ -262,37 +262,34 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self._force_haskell_syntax()
 
     def _force_haskell_syntax(self):
-        """Inietta dinamicamente il file tidal.lang e applica la sintassi nativa."""
+        """Forza la sintassi Haskell nativa in modo sicuro senza mandare in crash Gedit."""
         if not self.window:
             return False
             
-        plugin_dir = os.path.dirname(__file__)
-        syntax_dir = os.path.join(plugin_dir, "syntax")
-
         lang_manager = GtkSource.LanguageManager.get_default()
-        search_paths = lang_manager.get_search_paths() or []
+        haskell_lang = lang_manager.get_language('haskell')
         
-        if os.path.exists(syntax_dir) and syntax_dir not in search_paths:
-            new_paths = list(search_paths)
-            new_paths.append(syntax_dir)
-            lang_manager.set_search_paths(new_paths)
+        if not haskell_lang:
+            return False
 
-        for view in self.window.get_views():
-            if not view or not isinstance(view, Gtk.Widget):
-                continue
-                
-            buf = view.get_buffer()
-            if not isinstance(buf, Gedit.Document): 
-                continue
-
-            location = buf.get_file().get_location()
-            if location:
-                filename = location.get_basename()
-                if filename.endswith('.tidal'):
-                    tidal_lang = lang_manager.get_language('tidal')
+        try:
+            for view in self.window.get_views():
+                if not view or not isinstance(view, Gtk.Widget):
+                    continue
                     
-                    if tidal_lang and buf.get_language() != tidal_lang:
-                        buf.set_language(tidal_lang)
+                buf = view.get_buffer()
+                if not buf or not hasattr(buf, 'get_file'):
+                    continue
+
+                location = buf.get_file().get_location()
+                if location:
+                    filename = location.get_basename()
+                    if filename.endswith('.tidal'):
+                        if buf.get_language() != haskell_lang:
+                            buf.set_language(haskell_lang)
+        except Exception:
+            pass
+            
         return False
 
     def _setup_view_listener(self):
@@ -326,50 +323,53 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
     def _on_toggle_comment(self, action, param):
         """Inietta o rimuove '--' basandosi sulla selezione o sulla riga corrente."""
         buffer = self._get_current_buffer()
-        if buffer is None or not isinstance(buffer, Gtk.TextBuffer):
-            return
-
-        # Restituisce una tupla vuota () se non c'è selezione in PyGObject
-        bounds = buffer.get_selection_bounds()
-        if bounds:
-            start, end = bounds
-            has_selection = True
-        else:
-            insert_mark = buffer.get_insert()
-            start = buffer.get_iter_at_mark(insert_mark)
-            start.set_line_offset(0)
-            end = start.copy()
-            end.forward_to_line_end()
-            has_selection = False
-
-        text = buffer.get_text(start, end, False)
-        lines = text.splitlines()
-        if not lines:
-            return
-
-        is_commented = all(line.strip().startswith('--') or not line.strip() for line in lines)
         
-        new_lines = []
-        for line in lines:
-            if is_commented:
-                if line.strip().startswith('-- '):
-                    new_lines.append(line.replace('-- ', '', 1))
-                elif line.strip().startswith('--'):
-                    new_lines.append(line.replace('--', '', 1))
-                else:
-                    new_lines.append(line)
+        if buffer is None or not hasattr(buffer, 'get_selection_bounds'):
+            return
+
+        try:
+            bounds = buffer.get_selection_bounds()
+            if bounds:
+                start, end = bounds
+                has_selection = True
             else:
-                new_lines.append('-- ' + line)
+                insert_mark = buffer.get_insert()
+                start = buffer.get_iter_at_mark(insert_mark)
+                start.set_line_offset(0)
+                end = start.copy()
+                end.forward_to_line_end()
+                has_selection = False
 
-        new_text = "\n".join(new_lines)
-        
-        if not has_selection and text.endswith('\n'):
-            new_text += '\n'
+            text = buffer.get_text(start, end, False)
+            lines = text.splitlines()
+            if not lines:
+                return
 
-        buffer.begin_user_action()
-        buffer.delete(start, end)
-        buffer.insert(start, new_text)
-        buffer.end_user_action()
+            is_commented = all(line.strip().startswith('--') or not line.strip() for line in lines)
+            
+            new_lines = []
+            for line in lines:
+                if is_commented:
+                    if line.strip().startswith('-- '):
+                        new_lines.append(line.replace('-- ', '', 1))
+                    elif line.strip().startswith('--'):
+                        new_lines.append(line.replace('--', '', 1))
+                    else:
+                        new_lines.append(line)
+                else:
+                    new_lines.append('-- ' + line)
+
+            new_text = "\n".join(new_lines)
+            
+            if not has_selection and text.endswith('\n'):
+                new_text += '\n'
+
+            buffer.begin_user_action()
+            buffer.delete(start, end)
+            buffer.insert(start, new_text)
+            buffer.end_user_action()
+        except Exception:
+            pass
 
     def _on_eval_smart(self, action, param):
         buffer = self._get_current_buffer()
