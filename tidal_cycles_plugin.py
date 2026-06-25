@@ -262,13 +262,26 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
         self._force_haskell_syntax()
 
     def _force_haskell_syntax(self):
-        """Scans all opened text buffers and updates them cleanly without crashing."""
+        """Inietta dinamicamente il file tidal.lang e applica la sintassi nativa."""
         if not self.window:
             return False
             
-        # Standard loop through active editor layouts
+        # 1. Trova la cartella 'syntax' dentro la directory del plugin
+        plugin_dir = os.path.dirname(__file__)
+        syntax_dir = os.path.join(plugin_dir, "syntax")
+
+        # 2. Dice a Gedit di aggiungere questa cartella ai suoi percorsi di ricerca
+        lang_manager = GtkSource.LanguageManager.get_default()
+        search_paths = lang_manager.get_search_paths() or []
+        
+        if os.path.exists(syntax_dir) and syntax_dir not in search_paths:
+            # Creiamo una nuova lista pulita per evitare problemi di immutabilità delle tuple in PyGObject
+            new_paths = list(search_paths)
+            new_paths.append(syntax_dir)
+            lang_manager.set_search_paths(new_paths)
+
+        # 3. Applica la sintassi ai file .tidal aperti
         for view in self.window.get_views():
-            # SAFEGUARD: Confirm the view hasn't been destroyed before accessing it
             if not view or not isinstance(view, Gtk.Widget):
                 continue
                 
@@ -280,12 +293,11 @@ class TidalCyclesWindowActivatable(GObject.Object, Gedit.WindowActivatable):
             if location:
                 filename = location.get_basename()
                 if filename.endswith('.tidal'):
-                    # Access the GtkSource system directly to handle highlight configuration
-                    lang_manager = GtkSource.LanguageManager.get_default()
-                    haskell_lang = lang_manager.get_language('haskell')
+                    # Cerchiamo il nostro linguaggio 'tidal' registrato tramite il file .lang
+                    tidal_lang = lang_manager.get_language('tidal')
                     
-                    if haskell_lang and buf.get_language() != haskell_lang:
-                        buf.set_language(haskell_lang)
+                    if tidal_lang and buf.get_language() != tidal_lang:
+                        buf.set_language(tidal_lang)
         return False
 
     def _setup_view_listener(self):
