@@ -97,11 +97,12 @@ If your boot script is in a custom location:
 ## Native Syntax Highlighting Installation
 To get perfect, native syntax highlighting for `.tidal` files, copy the `tidal.lang` file into your local GtkSourceView directory:
 
-```bash
-# For Gedit 3 / GtkSourceView 3
-mkdir -p ~/.local/share/gtksourceview-3.0/language-specs/
-cp tidal.lang ~/.local/share/gtksourceview-3.0/language-specs/
-
-# For Gedit 4+ / GtkSourceView 4
+# Create the folders if not exist
 mkdir -p ~/.local/share/gtksourceview-4/language-specs/
+mkdir -p ~/.local/share/libgedit-gtksourceview-300/
+
+# Copy the file into the v4 folder
 cp tidal.lang ~/.local/share/gtksourceview-4/language-specs/
+
+# Crea il collegamento per il Gedit di Ubuntu 24.04
+ln -s ~/.local/share/gtksourceview-4/language-specs ~/.local/share/libgedit-gtksourceview-300/language-specs
