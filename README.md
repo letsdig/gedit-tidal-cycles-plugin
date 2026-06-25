@@ -92,3 +92,16 @@ If your boot script is in a custom location:
    ```bash
    sclang 
 <img width="451" height="355" alt="image" src="https://github.com/user-attachments/assets/e4f2c694-792b-4cb1-a049-31f2a66cee7e" />
+
+
+## Native Syntax Highlighting Installation
+To get perfect, native syntax highlighting for `.tidal` files, copy the `tidal.lang` file into your local GtkSourceView directory:
+
+```bash
+# For Gedit 3 / GtkSourceView 3
+mkdir -p ~/.local/share/gtksourceview-3.0/language-specs/
+cp tidal.lang ~/.local/share/gtksourceview-3.0/language-specs/
+
+# For Gedit 4+ / GtkSourceView 4
+mkdir -p ~/.local/share/gtksourceview-4/language-specs/
+cp tidal.lang ~/.local/share/gtksourceview-4/language-specs/
